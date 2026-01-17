@@ -34,9 +34,15 @@ namespace KAMI.Core.Utilities
 
         internal void WriteConfig()
         {
+            // Ensure directory exists
+            string? dir = Path.GetDirectoryName(FileName);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+            
             string json = JsonSerializer.Serialize(Config, SerializerOptions);
             File.WriteAllText(FileName, json);
-            ReloadConfig();
         }
 
         private static readonly JsonSerializerOptions SerializerOptions = new()
