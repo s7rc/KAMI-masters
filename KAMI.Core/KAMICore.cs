@@ -193,7 +193,11 @@ namespace KAMI.Core
             m_closing = false;
             if (started)
             {
+#if Windows
                 m_keyHandler = new KeyHandler(windowHandle, addHookAction);
+#elif Linux
+                m_keyHandler = new KeyHandler();
+#endif
                 m_keyHandler.OnKeyPress += (object sender) => ToggleInjector();
                 Start();
             }
