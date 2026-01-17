@@ -76,9 +76,10 @@ namespace KAMI.Linux
             // Sensitivity entry
             var sensRow = Box.New(Orientation.Horizontal, 10);
             var sensLabel = Label.New("Sensitivity:");
-            _sensitivityEntry = new Entry();
-            _sensitivityEntry.Text = _kami.Config.Sensitivity.ToString(CultureInfo.InvariantCulture);
-            _sensitivityEntry.OnChanged += OnSensitivityChanged;
+            _sensitivityEntry = Entry.New();
+            _sensitivityEntry.GetBuffer().SetText(_kami.Config.Sensitivity.ToString(CultureInfo.InvariantCulture), -1);
+            _sensitivityEntry.GetBuffer().OnInsertedText += OnSensitivityChanged;
+            _sensitivityEntry.GetBuffer().OnDeletedText += OnSensitivityDeleted;
             _sensitivityEntry.WidthChars = 10;
             sensRow.Append(sensLabel);
             sensRow.Append(_sensitivityEntry);
@@ -192,9 +193,20 @@ namespace KAMI.Linux
             return false;
         }
 
-        private void OnSensitivityChanged(Entry sender, EventArgs args)
+        private void OnSensitivityChanged(EntryBuffer sender, EntryBuffer.InsertedTextSignalArgs args)
         {
-            if (float.TryParse(_sensitivityEntry.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out float sens))
+            UpdateSensitivity();
+        }
+
+        private void OnSensitivityDeleted(EntryBuffer sender, EntryBuffer.DeletedTextSignalArgs args)
+        {
+            UpdateSensitivity();
+        }
+
+        private void UpdateSensitivity()
+        {
+            string text = _sensitivityEntry.GetBuffer().GetText();
+            if (float.TryParse(text, NumberStyles.Any, CultureInfo.InvariantCulture, out float sens))
             {
                 _kami.SetSensitivity(sens);
             }
