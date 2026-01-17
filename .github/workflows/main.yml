@@ -28,12 +28,10 @@ jobs:
       POWERSHELL_TELEMETRY_OPTOUT: 1
     steps:
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-      - name: Init submodules
+      - name: Clone PINE dependency
         run: |
-          git submodule sync
-          git submodule update --init --recursive
+          rm -rf pine
+          git clone --depth 1 https://github.com/GovanifY/pine pine
       - name: Setup (Linux)
         if: matrix.runs-on == 'ubuntu-latest'
         run: |
