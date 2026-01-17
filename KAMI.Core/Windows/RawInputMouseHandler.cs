@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if Windows
+using System;
 using System.Runtime.InteropServices;
 
 namespace KAMI.Core.Windows
@@ -218,3 +219,4 @@ namespace KAMI.Core.Windows
         }
     }
 }
+#endif

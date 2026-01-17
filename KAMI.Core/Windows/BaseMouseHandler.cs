@@ -1,4 +1,5 @@
-﻿using KAMI.Core.Common;
+﻿#if Windows
+using KAMI.Core.Common;
 using System;
 using System.Runtime.InteropServices;
 
@@ -50,3 +51,4 @@ namespace KAMI.Core.Windows
         }
     }
 }
+#endif

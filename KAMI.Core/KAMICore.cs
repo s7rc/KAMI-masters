@@ -58,7 +58,6 @@ namespace KAMI.Core
         }
 
 #elif Linux
-        Action<Exception> m_exceptionCallback;
         public KAMICore(Action<Exception> exceptionCallback = null)
         {
             string configPath = Path.Combine(
