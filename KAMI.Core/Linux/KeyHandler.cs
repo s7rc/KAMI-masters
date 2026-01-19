@@ -117,7 +117,7 @@ namespace KAMI.Core.Linux
         }
 
         /// <summary>
-        /// Check if a device is likely a keyboard by examining key capabilities
+        /// Check if a device is likely a keyboard by examining device name and key capabilities
         /// </summary>
         private bool IsLikelyKeyboard(string devicePath)
         {
@@ -127,17 +127,51 @@ namespace KAMI.Core.Linux
                 if (!eventName.StartsWith("event"))
                     return false;
 
-                // Check for key capabilities (should have alphabet keys)
-                string capsPath = $"/sys/class/input/{eventName}/device/capabilities/key";
-                if (File.Exists(capsPath))
+                // Check device name - real keyboards contain specific strings
+                string namePath = $"/sys/class/input/{eventName}/device/name";
+                if (File.Exists(namePath))
                 {
-                    string caps = File.ReadAllText(capsPath).Trim();
-                    // A keyboard should have many key capabilities
-                    // The caps string is hex, a real keyboard will have many bits set
-                    return caps.Length > 10; // Heuristic: keyboards have longer capability strings
+                    string name = File.ReadAllText(namePath).Trim().ToLower();
+                    Console.WriteLine($"[KeyHandler] Checking {eventName}: {name}");
+                    
+                    // Skip non-keyboard devices
+                    if (name.Contains("power button") || 
+                        name.Contains("lid switch") ||
+                        name.Contains("sleep button") ||
+                        name.Contains("video bus") ||
+                        name.Contains("mouse") ||
+                        name.Contains("touchpad") ||
+                        name.Contains("sensor"))
+                    {
+                        return false;
+                    }
+                    
+                    // Real keyboards typically have these in their name
+                    if (name.Contains("keyboard") || 
+                        name.Contains("at translated set") ||
+                        name.Contains("usb keyboard") ||
+                        name.Contains("hid"))
+                    {
+                        // Verify it has key capabilities
+                        string capsPath = $"/sys/class/input/{eventName}/device/capabilities/key";
+                        if (File.Exists(capsPath))
+                        {
+                            string caps = File.ReadAllText(capsPath).Trim();
+                            // Real keyboards have VERY long capability strings (100+ chars)
+                            // Power buttons have short strings
+                            if (caps.Length > 50)
+                            {
+                                Console.WriteLine($"[KeyHandler] {eventName} looks like a keyboard (caps={caps.Length} chars)");
+                                return true;
+                            }
+                        }
+                    }
                 }
             }
-            catch { }
+            catch (Exception ex) 
+            { 
+                Console.WriteLine($"[KeyHandler] Error checking {devicePath}: {ex.Message}");
+            }
             return false;
         }
 

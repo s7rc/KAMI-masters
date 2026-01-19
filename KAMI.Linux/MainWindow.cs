@@ -97,6 +97,20 @@ namespace KAMI.Linux
             invertRow.Append(_invertYCheck);
             controlsBox.Append(invertRow);
             
+            // Manual inject button (backup for when global hotkey doesn't work)
+            var injectButton = Button.NewWithLabel("▶ Start Injection");
+            injectButton.MarginTop = 10;
+            injectButton.OnClicked += (sender, args) =>
+            {
+                _kami.ToggleInjector();
+                var btn = sender as Button;
+                if (btn != null)
+                {
+                    btn.Label = _kami.Injecting ? "⏹ Stop Injection" : "▶ Start Injection";
+                }
+            };
+            controlsBox.Append(injectButton);
+            
             controlsFrame.Child = controlsBox;
             mainBox.Append(controlsFrame);
             
