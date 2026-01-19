@@ -27,33 +27,33 @@ namespace KAMI.Core
         static extern void pine_send_command(IntPtr v, Int32 cmd);
 
         [DllImport(libipc)]
-        static extern UInt64 pine_read(IntPtr v, UInt32 address, IPCCommand msg, bool batch);
+        static extern UInt64 pine_read(IntPtr v, UInt32 address, IPCCommand msg, [MarshalAs(UnmanagedType.I1)] bool batch);
 
         [DllImport(libipc)]
         [return: MarshalAs(UnmanagedType.LPUTF8Str)]
-        static extern string pine_version(IntPtr v, bool batch);
+        static extern string pine_version(IntPtr v, [MarshalAs(UnmanagedType.I1)] bool batch);
 
         [DllImport(libipc)]
-        static extern EmuStatus pine_status(IntPtr v, bool batch);
-
-        [DllImport(libipc)]
-        [return: MarshalAs(UnmanagedType.LPUTF8Str)]
-        static extern string pine_getgametitle(IntPtr v, bool batch);
+        static extern EmuStatus pine_status(IntPtr v, [MarshalAs(UnmanagedType.I1)] bool batch);
 
         [DllImport(libipc)]
         [return: MarshalAs(UnmanagedType.LPUTF8Str)]
-        static extern string pine_getgameid(IntPtr v, bool batch);
+        static extern string pine_getgametitle(IntPtr v, [MarshalAs(UnmanagedType.I1)] bool batch);
 
         [DllImport(libipc)]
         [return: MarshalAs(UnmanagedType.LPUTF8Str)]
-        static extern string pine_getgameuuid(IntPtr v, bool batch);
+        static extern string pine_getgameid(IntPtr v, [MarshalAs(UnmanagedType.I1)] bool batch);
 
         [DllImport(libipc)]
         [return: MarshalAs(UnmanagedType.LPUTF8Str)]
-        static extern string pine_getgameversion(IntPtr v, bool batch);
+        static extern string pine_getgameuuid(IntPtr v, [MarshalAs(UnmanagedType.I1)] bool batch);
 
         [DllImport(libipc)]
-        static extern void pine_write(IntPtr v, UInt32 address, UInt64 val, IPCCommand msg, bool batch);
+        [return: MarshalAs(UnmanagedType.LPUTF8Str)]
+        static extern string pine_getgameversion(IntPtr v, [MarshalAs(UnmanagedType.I1)] bool batch);
+
+        [DllImport(libipc)]
+        static extern void pine_write(IntPtr v, UInt32 address, UInt64 val, IPCCommand msg, [MarshalAs(UnmanagedType.I1)] bool batch);
 
         [DllImport(libipc)]
         static extern void pine_rpcs3_delete(IntPtr v);

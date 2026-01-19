@@ -203,12 +203,23 @@ namespace KAMI.Core.Linux
 
                         if (type == EV_REL)
                         {
+                            if (code == REL_X || code == REL_Y)
+                            {
+                                // Console.WriteLine($"[MouseHandler] Movement detected: code={code}, val={value}");
+                            }
+
                             lock (_lockObj)
                             {
                                 if (code == REL_X)
                                     _xDiff += value;
                                 else if (code == REL_Y)
                                     _yDiff += value;
+                            }
+                            
+                            // Debug log every ~100th event to avoid spam but confirm functionality
+                            if (Math.Abs(_xDiff) > 100 || Math.Abs(_yDiff) > 100)
+                            {
+                                Console.WriteLine($"[MouseHandler] Accumulating delta: X={_xDiff}, Y={_yDiff}");
                             }
                         }
                     }
