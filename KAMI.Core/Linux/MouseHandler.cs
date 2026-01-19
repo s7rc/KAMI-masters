@@ -119,29 +119,70 @@ namespace KAMI.Core.Linux
         }
 
         /// <summary>
-        /// Check if a device is likely a mouse by checking /sys/class/input/../capabilities/rel
+        /// Check if a device is likely a mouse by checking device name and capabilities
         /// </summary>
         private bool IsLikelyMouse(string devicePath)
         {
             try
             {
-                // Extract event number from path like /dev/input/event5
                 string eventName = Path.GetFileName(devicePath);
                 if (!eventName.StartsWith("event"))
                     return false;
 
-                string capsPath = $"/sys/class/input/{eventName}/device/capabilities/rel";
-                if (File.Exists(capsPath))
+                // First check device name
+                string namePath = $"/sys/class/input/{eventName}/device/name";
+                if (File.Exists(namePath))
                 {
-                    string caps = File.ReadAllText(capsPath).Trim();
-                    // A mouse should have REL_X (bit 0) and REL_Y (bit 1) = 0x3
-                    if (long.TryParse(caps, System.Globalization.NumberStyles.HexNumber, null, out long capValue))
+                    string name = File.ReadAllText(namePath).Trim().ToLower();
+                    Console.WriteLine($"[MouseHandler] Checking {eventName}: {name}");
+                    
+                    // Skip non-mouse devices
+                    if (name.Contains("keyboard") || 
+                        name.Contains("power button") ||
+                        name.Contains("lid switch") ||
+                        name.Contains("sleep button") ||
+                        name.Contains("video bus") ||
+                        name.Contains("pc speaker"))
                     {
-                        return (capValue & 0x3) == 0x3;
+                        return false;
+                    }
+                    
+                    // Check if it's explicitly a mouse/pointer device
+                    bool looksLikeMouse = name.Contains("mouse") || 
+                                          name.Contains("pointer") ||
+                                          name.Contains("touchpad") ||
+                                          name.Contains("trackpoint") ||
+                                          name.Contains("trackpad");
+                    
+                    // Check capabilities - mouse must have REL_X and REL_Y
+                    string capsPath = $"/sys/class/input/{eventName}/device/capabilities/rel";
+                    if (File.Exists(capsPath))
+                    {
+                        string capsStr = File.ReadAllText(capsPath).Trim();
+                        // Parse hex string (might be "3" or "103" or similar)
+                        if (long.TryParse(capsStr, System.Globalization.NumberStyles.HexNumber, null, out long capValue))
+                        {
+                            bool hasRelXY = (capValue & 0x3) == 0x3;
+                            if (hasRelXY)
+                            {
+                                Console.WriteLine($"[MouseHandler] {eventName} has REL_X/Y capabilities - this is a mouse!");
+                                return true;
+                            }
+                        }
+                    }
+                    
+                    // If name looks like a mouse even without REL caps, try it
+                    if (looksLikeMouse)
+                    {
+                        Console.WriteLine($"[MouseHandler] {eventName} name suggests mouse, trying it");
+                        return true;
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) 
+            { 
+                Console.WriteLine($"[MouseHandler] Error checking {devicePath}: {ex.Message}");
+            }
             return false;
         }
 
