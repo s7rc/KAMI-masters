@@ -34,22 +34,37 @@ namespace KAMI.Core.Linux
             string keyboardDevice = FindKeyboardDevice();
             if (keyboardDevice != null)
             {
+                Console.WriteLine($"[KeyHandler] Found keyboard device: {keyboardDevice}");
                 try
                 {
                     _keyboardDevice = new FileStream(keyboardDevice, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                     _running = true;
                     _readThread = new Thread(ReadLoop) { IsBackground = true };
                     _readThread.Start();
+                    Console.WriteLine("[KeyHandler] Started keyboard monitoring thread");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Warning: Could not open keyboard device {keyboardDevice}: {ex.Message}");
-                    Console.WriteLine("Global hotkeys will not work. Make sure user is in 'input' group.");
+                    Console.WriteLine($"[KeyHandler] ERROR: Could not open keyboard device {keyboardDevice}: {ex.Message}");
+                    Console.WriteLine("[KeyHandler] Global hotkeys will not work. Make sure user is in 'input' group.");
+                    Console.WriteLine("[KeyHandler] Run: sudo usermod -aG input $USER && logout");
                 }
             }
             else
             {
-                Console.WriteLine("Warning: No keyboard device found in /dev/input/");
+                Console.WriteLine("[KeyHandler] WARNING: No keyboard device found in /dev/input/");
+                Console.WriteLine("[KeyHandler] Trying to list available devices:");
+                try
+                {
+                    foreach (var f in Directory.GetFiles("/dev/input"))
+                    {
+                        Console.WriteLine($"  - {f}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"  Cannot list: {ex.Message}");
+                }
             }
         }
 
@@ -129,6 +144,7 @@ namespace KAMI.Core.Linux
         private void ReadLoop()
         {
             byte[] buffer = new byte[24]; // sizeof(input_event) on 64-bit
+            Console.WriteLine("[KeyHandler] ReadLoop started, waiting for key events...");
             
             while (_running && _keyboardDevice != null)
             {
@@ -143,26 +159,37 @@ namespace KAMI.Core.Linux
 
                         if (type == EV_KEY && value == KEY_PRESS)
                         {
+                            Console.WriteLine($"[KeyHandler] Key pressed: evdev code {code}");
+                            
                             // Check if this key matches our toggle hotkey
                             if (_hotkeys.TryGetValue(KeyType.InjectionToggle, out int? toggleKey))
                             {
+                                Console.WriteLine($"[KeyHandler] Toggle key is set to: {toggleKey}");
                                 if (toggleKey.HasValue && code == toggleKey.Value)
                                 {
+                                    Console.WriteLine("[KeyHandler] TOGGLE KEY MATCHED! Invoking OnKeyPress...");
                                     OnKeyPress?.Invoke(this);
                                 }
+                            }
+                            else
+                            {
+                                Console.WriteLine("[KeyHandler] No toggle key configured yet");
                             }
                         }
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Console.WriteLine($"[KeyHandler] Read error: {ex.Message}");
                     Thread.Sleep(100);
                 }
             }
+            Console.WriteLine("[KeyHandler] ReadLoop ended");
         }
 
         public void SetHotKey(KeyType keyType, int? key)
         {
+            Console.WriteLine($"[KeyHandler] SetHotKey called: {keyType} = {key}");
             _hotkeys[keyType] = key;
         }
 
