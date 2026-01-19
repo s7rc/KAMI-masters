@@ -206,18 +206,14 @@ namespace KAMI.Core
 
         public void ToggleInjector()
         {
-            Console.WriteLine($"[ToggleInjector] Called. Connected={Connected}, m_game={m_game?.GetType().Name ?? "null"}");
             if (Connected)
             {
                 Injecting = !Injecting;
-                Console.WriteLine($"[ToggleInjector] Injecting toggled to: {Injecting}");
                 if (Injecting)
                 {
-                    Console.WriteLine("[ToggleInjector] Starting injection...");
                     m_game.InjectionStart();
                     m_mouseHandler.GetCenterDiff();
                     m_mouseHandler.ConfineCursor();
-                    Console.WriteLine("[ToggleInjector] Injection started, cursor confined");
 #if Windows
                     if (Config.HideCursor)
                     {
@@ -232,10 +228,6 @@ namespace KAMI.Core
                 }
 #endif
                 m_keyHandler.SetEnableMouseHook(Injecting);
-            }
-            else
-            {
-                Console.WriteLine("[ToggleInjector] Not connected, skipping");
             }
             if (!Injecting)
             {
@@ -340,10 +332,6 @@ namespace KAMI.Core
                     if (Status == KAMIStatus.Injecting)
                     {
                         var (diffX, diffY) = m_mouseHandler.GetCenterDiff();
-                        if (diffX != 0 || diffY != 0)
-                        {
-                            Console.WriteLine($"[Injection] Mouse delta: ({diffX}, {diffY})");
-                        }
                         if (Config.InvertX) diffX = -diffX;
                         if (Config.InvertY) diffY = -diffY;
                         m_game.UpdateCamera(diffX, diffY);
