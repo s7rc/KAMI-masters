@@ -204,7 +204,7 @@ namespace KAMI.Core
             ReloadConfig();
         }
 
-        private void ToggleInjector()
+        public void ToggleInjector()
         {
             if (Connected)
             {
